@@ -1,0 +1,15 @@
+{:paths
+ ["src"]
+
+ :deps
+ {org.clojure/clojure               {:mvn/version "1.9.0"}
+  com.github.zafarkhaja/java-semver {:mvn/version "0.9.0"}}
+
+ :aliases
+ {:garamond
+  {:main-opts   ["-m" "garamond.main"]}
+  :test
+  {:extra-paths ["test/resources"]
+   :extra-deps  {lambdaisland/kaocha           {:mvn/version "0.0-248"}
+                 lambdaisland/kaocha-junit-xml {:mvn/version "0.0-13"}}
+   :main-opts   ["-m" "kaocha.runner"]}}}
