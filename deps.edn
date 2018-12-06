@@ -1,20 +1,23 @@
-{:paths
- ["src"]
+{:paths       ["src"]
+ :extra-paths ["resources"]
 
- :deps
- {org.clojure/clojure               {:mvn/version "1.9.0"}
-  me.arrdem/cuddlefish              {:mvn/version "0.1.0"}
-  com.github.zafarkhaja/java-semver {:mvn/version "0.9.0"}
-  io.herrera.kevin/semver           {:mvn/version "1.0.0"}
-  org.clojure/tools.deps.alpha      {:mvn/version "0.5.460"}
-  org.clojure/tools.cli             {:mvn/version "0.4.1"}
-  org.clojure/tools.logging         {:mvn/version "0.4.1"}}
+ :deps        {org.clojure/clojure               {:mvn/version "1.9.0"}
+               me.arrdem/cuddlefish              {:mvn/version "0.1.0"}
 
- :aliases
- {:garamond
-  {:main-opts ["-m" "garamond.main"]}
-  :test
-  {:extra-paths ["test/resources"]
-   :extra-deps  {lambdaisland/kaocha           {:mvn/version "0.0-248"}
-                 lambdaisland/kaocha-junit-xml {:mvn/version "0.0-13"}}
-   :main-opts   ["-m" "kaocha.runner"]}}}
+               com.github.zafarkhaja/java-semver {:mvn/version "0.9.0"}
+               ;com.dorkbox/Version               {:mvn/version "1.0"}
+               ;version-clj                       {:mvn/version "0.1.2"}
+
+               org.clojure/tools.deps.alpha      {:mvn/version "0.5.460"
+                                                  :exclusions  [org.slf4j/slf4j-nop]}
+               org.clojure/tools.cli             {:mvn/version "0.4.1"}
+               org.clojure/tools.logging         {:mvn/version "0.4.1"}
+               ch.qos.logback/logback-classic    {:mvn/version "1.2.3"}}
+
+ :aliases     {:garamond
+               {:main-opts ["-m" "garamond.main"]}
+               :test
+               {:extra-paths ["test"]
+                :extra-deps  {lambdaisland/kaocha           {:mvn/version "0.0-266"}
+                              lambdaisland/kaocha-junit-xml {:mvn/version "0.0-13"}}
+                :main-opts   ["-m" "kaocha.runner"]}}}

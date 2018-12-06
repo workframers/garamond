@@ -8,7 +8,7 @@
   {:git              "git"
    :describe-pattern cuddlefish/git-describe-pattern})
 
-(defn current []
+(defn current-status []
   (let [status (cuddlefish/status default-config)
         ver-str (string/replace (:tag status) #"^\D*" "")
         version (v/parse ver-str)]
