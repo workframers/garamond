@@ -1,7 +1,6 @@
 (ns garamond.version
   (:require [clojure.string :as string]
-            [clojure.tools.logging :as log]
-            [version-clj.core :as vc])
+            [clojure.tools.logging :as log])
   (:import (com.github.zafarkhaja.semver Version)))
 
 ;; cf https://github.com/zafarkhaja/jsemver
@@ -18,7 +17,7 @@
   (str prefix version))
 
 (defn version-with-rc0 [version]
-  (some-> version .incrementMajorVersion (str "-rc.0") parse))
+  (some-> version (str "-rc.0") parse))
 
 (defn version-without-rc [version]
   (some-> version str (string/replace #"-rc\.\d+" "") parse))
@@ -38,14 +37,26 @@
 (defmethod increment :patch [^Version version _]
   (some-> version .incrementPatchVersion))
 
-(defmethod increment :rc [^Version version _]
+(defmethod increment :major-rc [^Version version _]
   (let [current-rc (.getPreReleaseVersion version)]
     (if (string/blank? current-rc)
-      (version-with-rc0 version)
+      (-> version .incrementMajorVersion version-with-rc0)
       (some-> version .incrementPreReleaseVersion))))
 
-(defmethod increment :release [^Version version _]
+(defmethod increment :minor-rc [^Version version _]
+  (let [current-rc (.getPreReleaseVersion version)]
+    (if (string/blank? current-rc)
+      (-> version .incrementMinorVersion version-with-rc0)
+      (some-> version .incrementPreReleaseVersion))))
+
+(defmethod increment :major-release [^Version version _]
   (let [current-rc (.getPreReleaseVersion version)]
     (if (string/blank? current-rc)
       (some-> version .incrementMajorVersion)
+      (version-without-rc version))))
+
+(defmethod increment :minor-release [^Version version _]
+  (let [current-rc (.getPreReleaseVersion version)]
+    (if (string/blank? current-rc)
+      (some-> version .incrementMinorVersion)
       (version-without-rc version))))

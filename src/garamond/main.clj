@@ -62,7 +62,7 @@
 (defn print-version [options status]
   (println (version/to-string (:version status) options)))
 
-(def valid-inc-types #{:major :minor :patch :rc :release})
+(def valid-inc-types #{:major :minor :patch :minor-rc :minor-release :major-rc :major-release})
 
 (defn increment [options args {:keys [version] :as status}]
   (let [inc-type (some-> args first keyword)]
