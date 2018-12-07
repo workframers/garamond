@@ -4,9 +4,7 @@ A utility to generate and update version numbers and artifact IDs, intended
 to be used for assistance in publishing tools.deps-based libraries as jar
 files to Maven-based repositories.
 
-The library is meant to be run from a tools.deps alias.
-
-The function has two main uses:
+The library is meant to be run from a tools.deps alias. It has two main uses:
 
 1. Maintaining a version number for a library based on git tags
 2. Postprocessing the tools.deps `clojure -Spom` output to update it
@@ -29,17 +27,63 @@ To use garamond, install it as an alias in your deps.edn:
 
 Now you can run it from the command-line via:
 
-`clojure -A:garamond version`
+`clojure -A:garamond`
 
 TBD: initialize tags in repo, explain it's all based on git tags
 
+#### leiningen
+
+leiningen users can also set up an alias in `project.clj` to access garamond:
+
+```clojure
+(defproject ...
+  :aliases {"garamond" ^:pass-through-help ["trampoline" "run" "-m" "garamond.main"]})
+```
+
+With this in place, you can run `lein garamond`. Note that garamond does not
+have any particular hooks into leiningen internals, but it should be compatible
+with plugins such as `lein-v` (see below).
+
 ## Usage
 
-`clojure -A:garamond --help` will show the available options, but the basics are:
+`clojure -A:garamond --help` will show the available options:
 
-* `clojure -A:garamond version`: Display the current version based on git tags
-* `clojure -A:garamond increment`: Increment the major/minor/patch version and create a new tag
-* `clojure -A:garamond pom`: Run `clojure -Spom` and modify the generated pom file
+```
+% clojure -A:garamond --help
+garamond is a utility for printing and incrementing versions based on git tags.
+
+Usage: clojure -m garamond.main [options] [increment-type]
+
+Options:
+  -h, --help                     Print usage and exit
+  -p, --prefix PREFIX            Use this prefix in front of versions for tags
+      --pom                      Generate or update the pom.xml file
+      --git                      Create a new git tag based on the given version
+  -m, --message MESSAGE          Commit message for git tag
+  -g, --group-id GROUP-ID        Update the pom.xml file with this <groupId> value
+  -a, --artifact-id ARTIFACT-ID  Update the pom.xml file with this <artifactId> value
+      --force-version VERSION    Use this value for the pom.xml <version> tag
+
+With no increment type, garamond will print the current version number and exit.
+
+The prefix string ('v' in the tag 'v1.2.3') will be preserved in the new tag, or
+it can be overridden via the -p option.
+
+Increment types:
+  major              1.2.4 -> 2.0.0
+  minor              1.2.4 -> 1.3.0
+  patch              1.2.4 -> 1.2.5
+  major-rc           2.7.9 -> 3.0.0-rc.0, 4.0.0-rc.3 -> 4.0.0-rc.4
+  minor-rc           2.7.9 -> 2.8.0-rc.0, 4.3.0-rc.0 -> 4.3.0-rc.1
+  major-release      4.0.0-rc.4 -> 4.0.0, 3.2.9 -> 4.0.0
+  minor-release      8.1.0-rc.4 -> 8.2.0, 5.9.4 -> 5.10.0
+
+See https://github.com/workframers/garamond for more information.
+```
+
+* `clojure -A:garamond`: Display the current version based on git tags
+* `clojure -A:garamond major`: Increment the major version
+* `clojure -A:garamond --pom`: Run `clojure -Spom` and modify the generated pom file
   to reflect the current version number along with the group-id and artifact-id given.
 
 ## Versioning rules
@@ -81,6 +125,12 @@ This does the same thing as `major-release`, but affects the minor version:
 
 ## Background and rationale
 
+The basic goal of this project is to automate all the pre-`pack/pack.alpha`
+stuff in [this article about deploying library jars with
+deps](https://juxt.pro/blog/posts/pack-maven.html).
+Secondarily it aims to serve as an analogue to `lein-v` in the tools.deps
+universe.
+
 ### Similar projects
 
 The [lein-v](https://github.com/roomkey/lein-v) and
@@ -89,5 +139,5 @@ do some similar stuff in a leiningen context.
 
 ### About the name
 
-Garamond is the name of a publishing house in Umberto Eco's 1988 novel
+Garamond is the name of a publishing company in Umberto Eco's 1988 novel
 _Foucault's Pendulum_.

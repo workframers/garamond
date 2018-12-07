@@ -1,16 +1,19 @@
 (ns garamond.main
   (:require [clojure.tools.cli :as cli]
-            [clojure.tools.deps.alpha.gen.pom :as pom]
             [clojure.string :as string]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as timbre]
             [garamond.git :as git]
-            [garamond.version :as version]))
+            [garamond.pom :as pom]
+            [garamond.logging :as logging]
+            [garamond.version :as version]
+            [garamond.version :as v]))
 
 (def cli-options
   [["-h" "--help" "Print usage and exit"]
-   ["-p" "--prefix PREFIX" "Use this prefix in front of versions for tags" :default "v"]
+   ["-v" "--verbose" "Print more debugging logs" :default true]
+   ["-p" "--prefix PREFIX" "Use this prefix in front of versions for tags"]
    [nil "--pom" "Generate or update the pom.xml file" :default false]
-   [nil "--git" "Create a new git tag based on the given version" :default false]
+   ["-t" "--tag" "Create a new git tag based on the given version" :default false]
    ["-m" "--message MESSAGE" "Commit message for git tag"]
    ["-g" "--group-id GROUP-ID" "Update the pom.xml file with this <groupId> value"]
    ["-a" "--artifact-id ARTIFACT-ID" "Update the pom.xml file with this <artifactId> value"]
@@ -25,6 +28,9 @@
         options-summary
         ""
         "With no increment type, garamond will print the current version number and exit."
+        ""
+        "The prefix string ('v' in the tag 'v1.2.3') will be preserved in the new tag, or"
+        "it can be overridden via the -p option."
         ""
         "Increment types:"
         "  major              1.2.4 -> 2.0.0"
@@ -71,29 +77,45 @@
   ([code message]
    (throw (ex-info "Exit condition" {:code code :message message}))))
 
-(defn print-version [options status]
+(defn- print-version [options status]
   (println (version/to-string (:version status) options)))
 
-(defn increment [incr-type options version]
-  (let [new-version (version/increment version incr-type)]
-    (println (format "%s increment of %s -> %s" (name incr-type)
-                     (version/to-string version options)
-                     (version/to-string new-version options)))))
+(defn- increment [incr-type options {:keys [version current]}]
+  (version/increment version incr-type))
+
+(defn- parse-forced-version [v-str]
+  (v/parse v-str))
 
 (defn -main [& args]
   (try
-    (let [{:keys [incr-type options args exit-message ok?]} (validate-args args)
-          status (git/current-status)]
+    (let [{:keys [incr-type options exit-message ok?]} (validate-args args)
+          status (git/current-status)
+          opts   (assoc options :prefix (or (:prefix options) (:prefix status) "v"))
+          incr?  (not= :print-version incr-type)
+          new-v  (cond
+                   (:force-version opts) (parse-forced-version (:force-version opts))
+                   incr?                 (increment incr-type opts status)
+                   :else                 (:version status))]
       (when exit-message
         (exit (if ok? 0 1) exit-message))
-      (if (= :print-version incr-type)
-        (print-version options status)
-        (increment incr-type options (:version  status))))
+      (logging/set-up-logging! options)
+      (if incr?
+        (timbre/infof "%s increment of %s -> %s" (name incr-type)
+                      (:current status)
+                      (version/to-string new-v options))
+        (print-version opts status))
+
+      (when (:pom opts)
+        (pom/generate! new-v opts))
+
+      (when (:tag opts) ; TODO: check for dirty filesystem
+        (git/tag! new-v opts)))
+
     (catch Exception e
       (let [{:keys [code message]} (ex-data e)]
         (if message
           (binding [*out* *err*] (println message))
           (when-not code ; exception
-            (log/error e)))
+            (timbre/error e)))
         (System/exit (or code 128)))))
   (System/exit 0))
