@@ -16,13 +16,19 @@
 (defn to-string [version {:keys [prefix]}]
   (str prefix version))
 
-(defn version-with-rc0 [version]
+(defn version-with-rc0
+  "Given a version, construct the same version with a -rc.0 suffix."
+  [version]
+  ;; Note, this is probably pretty brittle but works for simple cases
   (some-> version (str "-rc.0") parse))
 
-(defn version-without-rc [version]
-  (some-> version str (string/replace #"-rc\.\d+" "") parse))
+(defn version-without-rc
+  "Return a new version without a -rc.x suffix on it."
+  [version]
+  (some-> version str (string/replace #"[-.]?rc\.\d+" "") parse))
 
-(defmulti increment (fn [_ inc-type] inc-type))
+(defmulti increment "Given a version number, increment one of its components."
+  (fn [_ inc-type] inc-type))
 
 (defmethod increment :default [_ inc-type]
   (log/errorf "Unknown increment type %s!" inc-type)
