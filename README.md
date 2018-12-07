@@ -56,9 +56,10 @@ Usage: clojure -m garamond.main [options] [increment-type]
 
 Options:
   -h, --help                     Print usage and exit
-  -p, --prefix PREFIX            Use this prefix in front of versions for tags
-      --pom                      Generate or update the pom.xml file
-      --git                      Create a new git tag based on the given version
+  -v, --verbose                  Print more debugging logs
+      --prefix PREFIX            Use this prefix in front of versions for tags
+  -p, --pom                      Generate or update the pom.xml file
+  -t, --tag                      Create a new git tag based on the given version
   -m, --message MESSAGE          Commit message for git tag
   -g, --group-id GROUP-ID        Update the pom.xml file with this <groupId> value
   -a, --artifact-id ARTIFACT-ID  Update the pom.xml file with this <artifactId> value
@@ -141,3 +142,8 @@ do some similar stuff in a leiningen context.
 
 Garamond is the name of a publishing company in Umberto Eco's 1988 novel
 _Foucault's Pendulum_.
+
+## TODO
+
+- Generate `<scm>` tag, per [this](https://juxt.pro/blog/posts/pack-maven.html#_generate_a_pom_xml).
+  Needs lots of argument values, maybe we need a `.garamond.edn` config file?

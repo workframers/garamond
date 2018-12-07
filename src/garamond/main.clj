@@ -11,8 +11,8 @@
 (def cli-options
   [["-h" "--help" "Print usage and exit"]
    ["-v" "--verbose" "Print more debugging logs" :default true]
-   ["-p" "--prefix PREFIX" "Use this prefix in front of versions for tags"]
-   [nil "--pom" "Generate or update the pom.xml file" :default false]
+   [nil "--prefix PREFIX" "Use this prefix in front of versions for tags"]
+   ["-p" "--pom" "Generate or update the pom.xml file" :default false]
    ["-t" "--tag" "Create a new git tag based on the given version" :default false]
    ["-m" "--message MESSAGE" "Commit message for git tag"]
    ["-g" "--group-id GROUP-ID" "Update the pom.xml file with this <groupId> value"]
