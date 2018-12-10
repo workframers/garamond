@@ -13,9 +13,8 @@
 
 (defn set-up-logging!
   "Initialize timbe logging."
-  [{:keys [verbose]}]
+  [{:keys [debug]}]
   (timbre/merge-config!
-   {:min-level      (if verbose :debug :info)
-    :output-fn      log-message
-    :timestamp-opts {:pattern :iso8601}}))
-
+   {:output-fn      log-message
+    :timestamp-opts {:pattern :iso8601}})
+  (timbre/set-level! (if debug :debug :info)))

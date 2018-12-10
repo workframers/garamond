@@ -3,13 +3,14 @@
             [clojure.string :as string]
             [taoensso.timbre :as log]
             [garamond.git :as git]
-            [garamond.pom :as pom]
             [garamond.logging :as logging]
-            [garamond.version :as v]))
+            [garamond.pom :as pom]
+            [garamond.version :as v]
+            [garamond.util :as u]))
 
 (def cli-options
   [["-h" "--help" "Print usage and exit"]
-   ["-v" "--verbose" "Print more debugging logs" :default true]
+   ["-d" "--debug" "Print more debugging logs" :default false]
    [nil "--prefix PREFIX" "Use this prefix in front of versions for tags"]
    ["-p" "--pom" "Generate or update the pom.xml file" :default false]
    ["-t" "--tag" "Create a new git tag based on the given version" :default false]
@@ -55,26 +56,15 @@
   indicating the action the program should take and the options provided."
   [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)
-        action (some-> arguments first keyword)]
+        action   (some-> arguments first keyword)
+        invalid? (and (some? action) (not (contains? valid-inc-types action)))]
     (cond
-      (:help options)                                       ; help => exit OK with usage summary
-      {:exit-message (usage summary) :ok? true}
-      errors                                                ; errors => exit with description of errors
-      {:exit-message (error-msg errors)}
-      ;; custom validation on arguments
-      (and (some? action) (not (contains? valid-inc-types action)))
-      {:exit-message (format "Unknown increment type '%s'! Valid types: %s."
-                             (name action) (->> valid-inc-types (map name) sort (string/join ", ")))}
-      :else                                                 ; failed custom validation => exit with usage summary
-      {:incr-type action :options (assoc options :summary summary)})))
-
-(defn exit
-  ([]
-   (exit 0))
-  ([code]
-   (exit code nil))
-  ([code message]
-   (throw (ex-info "Exit condition" {:code code :message message}))))
+      (:help options) {:exit-message (usage summary) :ok? true}
+      errors          {:exit-message (error-msg errors)}
+      invalid?        {:exit-message (format "Unknown increment type '%s'! Valid types: %s."
+                                             (name action)
+                                             (->> valid-inc-types (map name) sort (string/join ", ")))}
+      :else           {:incr-type action :options (assoc options :summary summary)})))
 
 (defn- print-version [options status]
   (println (v/to-string (:version status) options)))
@@ -95,27 +85,35 @@
                     (:force-version opts) (parse-forced-version (:force-version opts))
                     incr? (increment incr-type opts status)
                     :else (:version status))
-          new-str (v/to-string new-v options)]
+          new-str (v/to-string new-v opts)]
       (when exit-message
-        (exit (if ok? 0 1) exit-message))
-      (logging/set-up-logging! options)
-      (if incr?
-        (log/infof "%s increment of %s -> %s" (name incr-type)
-                   (:current status) new-str)
-        (when-not (or (:pom opts) (:tag opts))
-          (print-version opts status)))
+        (u/exit (if ok? 0 1) exit-message))
+      (logging/set-up-logging! opts)
+      ;(log/spy opts)
+
+      (when (and (:tag opts) (-> status :git :dirty?))
+        (log/error "Current repository is dirty, will not create a tag. Please commit your changes and retry."))
+        ;(exit 2 "Current repository is dirty, will not create a tag. Please commit your changes and retry."))
 
       (when (:pom opts)
         (pom/generate! new-v opts))
 
-      (when (:tag opts)                                     ; TODO: check for dirty filesystem
-        (git/tag! new-v opts)))
+      (when (:tag opts)
+        (git/tag! new-v opts status)
+        (log/infof "Created new git tag %s from %s increment of %s"
+                   new-str (name incr-type) (:current status)))
+
+      (when-not (or (:pom opts) (:tag opts))
+        (if incr?
+          (print-version opts status)
+          (print-version opts status))))
 
     (catch Exception e
       (let [{:keys [code message]} (ex-data e)]
-        (if message
-          (binding [*out* *err*] (println message))
-          (when-not code                                    ; exception
-            (log/error e (.getMessage e))))
+        (binding [*out* *err*]
+          (if message
+            (println message)
+            (when-not code                                  ; exception
+              (log/error e (.getMessage e)))))
         (System/exit (or code 128)))))
   (System/exit 0))

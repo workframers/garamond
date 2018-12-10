@@ -77,7 +77,6 @@
                (if group-id (format ", groupId %s" group-id) "")
                (if artifact-id (format ", artifactId %s" artifact-id) ""))))
 
-
 ;; todo, could add an option to remove pom.xml prior to -Spom
 (defn generate!
   "Use tools.deps to create or update a pom.xml, and then post-process it to plug in some values."
