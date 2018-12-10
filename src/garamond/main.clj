@@ -116,6 +116,6 @@
         (if message
           (binding [*out* *err*] (println message))
           (when-not code ; exception
-            (timbre/error e)))
+            (timbre/error e (.getMessage e))))
         (System/exit (or code 128)))))
   (System/exit 0))
