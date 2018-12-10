@@ -1,6 +1,6 @@
 (ns garamond.version
   (:require [clojure.string :as string]
-            [taoensso.timbre :as timbre])
+            [taoensso.timbre :as log])
   (:import (com.github.zafarkhaja.semver Version)))
 
 ;; cf https://github.com/zafarkhaja/jsemver
@@ -10,7 +10,7 @@
   (try
     (Version/valueOf version-str)
     (catch Exception e
-      (timbre/errorf "Can't parse version string from '%s': %s" version-str (.getMessage e))
+      (log/errorf "Can't parse version string from '%s': %s" version-str (.getMessage e))
       nil)))
 
 (defn to-string [version {:keys [prefix]}]
@@ -31,7 +31,8 @@
   (fn [_ inc-type] inc-type))
 
 (defmethod increment :default [_ inc-type]
-  (timbre/errorf "Unknown increment type %s!" inc-type)
+  (log/errorf "Unknown increment type %s!" inc-type)
+  (throw (ex-info "Whoa {}" {}))
   nil)
 
 (defmethod increment :major [^Version version _]

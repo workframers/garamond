@@ -15,7 +15,7 @@
   "Initialize timbe logging."
   [{:keys [verbose]}]
   (timbre/merge-config!
-   {:min-level (if verbose :debug :info)
-    :output-fn log-message
+   {:min-level      (if verbose :debug :info)
+    :output-fn      log-message
     :timestamp-opts {:pattern :iso8601}}))
 

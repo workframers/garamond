@@ -1,5 +1,5 @@
 (ns garamond.pom
-  (:require [taoensso.timbre :as timbre]
+  (:require [taoensso.timbre :as log]
             [clojure.tools.deps.alpha.gen.pom :as tool-deps-pom]
             [clojure.java.io :as jio]
             [clojure.data.xml :as xml]
@@ -61,7 +61,6 @@
 
 (defn update-pom!
   [version {:keys [artifact-id group-id] :as options}]
-  (timbre/spy [artifact-id group-id version])
   (let [pom-file (jio/file "pom.xml")
         pom      (with-open [rdr (jio/reader pom-file)]
                    (-> rdr
@@ -72,13 +71,18 @@
                        (replace-version version)
                        zip/root))
         content (xml/indent-str pom)]
-    (spit pom-file content)))
+    (spit pom-file content)
+    (log/infof "Updated pom.xml to version %s%s%s"
+               version
+               (if group-id (format ", groupId %s" group-id) "")
+               (if artifact-id (format ", artifactId %s" artifact-id) ""))))
+
 
 ;; todo, could add an option to remove pom.xml prior to -Spom
 (defn generate!
   "Use tools.deps to create or update a pom.xml, and then post-process it to plug in some values."
   [version options]
-  (let [v (.toString version)]
-    (timbre/debugf "Generating pom.xml for %s..." v)
+  (let [ver-str (.toString version)]
+    (log/debugf "Generating pom.xml for %s..." ver-str)
     (create-or-sync-pom!)
-    (update-pom! v options)))
+    (update-pom! ver-str options)))

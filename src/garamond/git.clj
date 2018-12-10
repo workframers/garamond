@@ -1,7 +1,7 @@
 (ns garamond.git
   (:require [cuddlefish.core :as cuddlefish]
             [garamond.version :as v]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as log]))
 
 (def default-config
   "The default configuration values."
@@ -9,7 +9,7 @@
    :describe-pattern cuddlefish/git-describe-pattern})
 
 (defn current-status []
-  (let [status (cuddlefish/status default-config)
+  (let [status  (cuddlefish/status default-config)
         current (:tag status)
         [_ prefix ver-str] (re-matches #"^(\D*)(.*)$" current)
         version (v/parse ver-str)]
@@ -18,4 +18,5 @@
 (defn tag!
   ""
   [version options]
-  (timbre/debugf "Creating new tag for %s..." (v/to-string version options)))
+  (let [new-ver (v/to-string version options)]
+    (log/infof "Created new git tag %s" new-ver)))
