@@ -1,15 +1,14 @@
 (ns garamond.pom
   (:require [taoensso.timbre :as timbre]
-            [garamond.version :as version]
             [clojure.tools.deps.alpha.gen.pom :as tool-deps-pom]
             [clojure.java.io :as jio]
             [clojure.data.xml :as xml]
             [clojure.tools.deps.alpha.script.make-classpath :as makecp]
-            [clojure.zip :as zip]
-            [clojure.data.xml.tree :as tree]
-            [clojure.data.xml.event :as event])
-  (:import [java.io Reader File]
-           [clojure.data.xml.node Element]))
+            [clojure.zip :as zip]))
+
+;; Some decent xml zipper background:
+;; https://ravi.pckl.me/short/functional-xml-editing-using-zippers-in-clojure/
+;; http://josf.info/blog/2014/03/28/clojure-zippers-structure-editing-with-your-mind/
 
 (defn- create-or-sync-pom!
   "Possibly unwisely reaches into some t.d.a internals to kick off pom creation or synchronization.
@@ -23,48 +22,42 @@
 
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 
-(defn- make-xml-element
-  [{:keys [tag attrs] :as node} children]
-  (with-meta
-   (apply xml/element tag attrs children)
-   (meta node)))
+(defn simple-tag [node new-val]
+  (assoc-in node [:content] new-val))
 
-(defn- xml-update
-  [root tag-path replace-node]
-  (let [z (zip/zipper xml/element? :content make-xml-element root)]
-    (zip/root
-     (loop [[tag & more-tags :as tags] tag-path, parent z, child (zip/down z)]
-       (if child
-         (if (= tag (:tag (zip/node child)))
-           (if (seq more-tags)
-             (recur more-tags child (zip/down child))
-             (zip/edit child (constantly replace-node)))
-           (recur tags parent (zip/right child)))
-         (zip/append-child parent replace-node))))))
+(defn tag-matches? [loc [parent-tag child-tag]]
+  (and (= (-> loc zip/node :tag) child-tag)
+       (= (-> loc zip/up zip/node :tag) parent-tag)))
 
-(defn- parse-xml
-  [^Reader rdr]
-  (let [roots (tree/seq-tree event/event-element event/event-exit? event/event-node
-                             (xml/event-seq rdr {:include-node? #{:element :characters :comment}}))]
-    (first (filter #(instance? Element %) (first roots)))))
+;; NB: this probably needlessly recurses through the whole tree, but only changes the top level
+(defn replace-tag
+  "Given an xml-zip result, the path to a tag, and the new contents of a node, return the xml with the
+  contents of the tag replaced by the given result."
+  [pom-zip tag-path contents]
+  (loop [loc pom-zip]
+    (if (zip/end? loc)
+      (zip/xml-zip (zip/root loc))
+      (if (tag-matches? loc tag-path)
+        (recur (zip/next (zip/edit loc simple-tag contents)))
+        (recur (zip/next loc))))))
 
 (defn- replace-artifact-id
-  [pom artifact-id]
+  [pom-zip artifact-id]
   (if artifact-id
-    (xml-update pom [::pom/artifactId] (xml/sexp-as-element [::pom/artifactId artifact-id]))
-    pom))
+    (replace-tag pom-zip [::pom/project ::pom/artifactId] artifact-id)
+    pom-zip))
 
 (defn- replace-group-id
-  [pom group-id]
+  [pom-zip group-id]
   (if group-id
-    (xml-update pom [::pom/groupId] (xml/sexp-as-element [::pom/groupId group-id]))
-    pom))
+    (replace-tag pom-zip [::pom/project ::pom/groupId] group-id)
+    pom-zip))
 
 (defn- replace-version
-  [pom version-str]
+  [pom-zip version-str]
   (if version-str
-    (xml-update pom [::pom/version] (xml/sexp-as-element [::pom/version version-str]))
-    pom))
+    (replace-tag pom-zip [::pom/project ::pom/version] version-str)
+    pom-zip))
 
 (defn update-pom!
   [version {:keys [artifact-id group-id] :as options}]
@@ -72,11 +65,14 @@
   (let [pom-file (jio/file "pom.xml")
         pom      (with-open [rdr (jio/reader pom-file)]
                    (-> rdr
-                       parse-xml
+                       xml/parse
+                       zip/xml-zip
                        (replace-artifact-id artifact-id)
                        (replace-group-id group-id)
-                       (replace-version version)))]
-    (spit pom-file (xml/indent-str pom))))
+                       (replace-version version)
+                       zip/root))
+        content (xml/indent-str pom)]
+    (spit pom-file content)))
 
 ;; todo, could add an option to remove pom.xml prior to -Spom
 (defn generate!

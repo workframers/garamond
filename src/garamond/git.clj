@@ -1,9 +1,7 @@
 (ns garamond.git
   (:require [cuddlefish.core :as cuddlefish]
             [garamond.version :as v]
-            [clojure.string :as string]
-            [taoensso.timbre :as timbre]
-            [garamond.version :as version]))
+            [taoensso.timbre :as timbre]))
 
 (def default-config
   "The default configuration values."
@@ -20,4 +18,4 @@
 (defn tag!
   ""
   [version options]
-  (timbre/debugf "Creating new tag for %s..." (version/to-string version options)))
+  (timbre/debugf "Creating new tag for %s..." (v/to-string version options)))

@@ -5,7 +5,6 @@
             [garamond.git :as git]
             [garamond.pom :as pom]
             [garamond.logging :as logging]
-            [garamond.version :as version]
             [garamond.version :as v]))
 
 (def cli-options
@@ -78,10 +77,10 @@
    (throw (ex-info "Exit condition" {:code code :message message}))))
 
 (defn- print-version [options status]
-  (println (version/to-string (:version status) options)))
+  (println (v/to-string (:version status) options)))
 
 (defn- increment [incr-type options {:keys [version current]}]
-  (version/increment version incr-type))
+  (v/increment version incr-type))
 
 (defn- parse-forced-version [v-str]
   (v/parse v-str))
@@ -102,7 +101,7 @@
       (if incr?
         (timbre/infof "%s increment of %s -> %s" (name incr-type)
                       (:current status)
-                      (version/to-string new-v options))
+                      (v/to-string new-v options))
         (print-version opts status))
 
       (when (:pom opts)
