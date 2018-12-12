@@ -1,6 +1,7 @@
 (ns garamond.pom
   (:require [taoensso.timbre :as log]
-            [clojure.tools.deps.alpha.gen.pom :as tool-deps-pom]
+            [clojure.tools.deps.alpha.gen.pom :as tda-pom]
+            [clojure.tools.deps.alpha.reader :as tda-reader]
             [clojure.java.io :as jio]
             [clojure.data.xml :as xml]
             [clojure.tools.deps.alpha.script.make-classpath :as makecp]
@@ -15,8 +16,8 @@
   Note that this ignores system/user deps.edn files and aliases. Ideally this is the same result as
   running `clojure -Spom`."
   []
-  (let [mods (makecp/combine-deps-files {:config-files ["deps.edn"]})]
-    (tool-deps-pom/sync-pom mods (jio/file "."))))
+  (let [deps (tda-reader/slurp-deps (jio/file "deps.edn"))]
+    (tda-pom/sync-pom deps (jio/file "."))))
 
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 
