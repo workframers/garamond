@@ -1,7 +1,6 @@
 # garamond
 
 [![Clojars Project](https://img.shields.io/clojars/v/com.workframe/garamond.svg)](https://clojars.org/com.workframe/garamond)
-[![CircleCI](https://circleci.com/gh/workframers/garamond.svg?style=svg)](https://circleci.com/gh/workframers/garamond)
 
 garamond is a clojure utility for maintaining git tag versions and for
 modifying pom.xml files.
