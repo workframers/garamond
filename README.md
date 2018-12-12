@@ -132,6 +132,8 @@ deps](https://juxt.pro/blog/posts/pack-maven.html).
 Secondarily it aims to serve as an analogue to `lein-v` in the tools.deps
 universe.
 
+__TODO__: add more stuff here
+
 ### Similar projects
 
 The [lein-v](https://github.com/roomkey/lein-v) and
@@ -141,9 +143,12 @@ do some similar stuff in a leiningen context.
 ### About the name
 
 Garamond is the name of a publishing company in Umberto Eco's 1988 novel
-_Foucault's Pendulum_.
+_Foucault's Pendulum_, and has nothing to do with the typeface of the same name.
 
 ## TODO
 
 - Generate `<scm>` tag, per [this](https://juxt.pro/blog/posts/pack-maven.html#_generate_a_pom_xml).
   Needs lots of argument values, maybe we need a `.garamond.edn` config file?
+- Support tag signing
+- Autodeploy garamond to clojars when new tags appear on master
+- Maybe? support generated version.edn / version.clj file as lein-v

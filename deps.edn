@@ -12,10 +12,20 @@
                org.clojure/data.xml              {:mvn/version "0.2.0-alpha6"}
                org.clojure/data.zip              {:mvn/version "0.1.2"}}
 
- :aliases     {:garamond
-               {:main-opts ["-m" "garamond.main"]}
-               :test
-               {:extra-paths ["test"]
-                :extra-deps  {lambdaisland/kaocha           {:mvn/version "0.0-266"}
-                              lambdaisland/kaocha-junit-xml {:mvn/version "0.0-13"}}
-                :main-opts   ["-m" "kaocha.runner"]}}}
+ :aliases     {:garamond {:main-opts ["-m" "garamond.main" "--artifact-id" "garamond" "--group-id" "com.workframe"]}
+
+               :test     {:extra-paths ["test"]
+                          :extra-deps  {lambdaisland/kaocha           {:mvn/version "0.0-266"}
+                                        lambdaisland/kaocha-junit-xml {:mvn/version "0.0-13"}}
+                          :main-opts   ["-m" "kaocha.runner"]}
+
+               :jar      {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                                        :sha     "8acf80dd4d6e5173585f5c6fec7af28a310f3ed7"}}
+                          :main-opts  ["-m" "mach.pack.alpha.skinny" "--no-libs" "--project-path"
+                                       "target/garamond.jar"]}
+
+               :deploy   {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
+                          :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy"
+                                       "target/garamond.jar"]}}}
+
+
