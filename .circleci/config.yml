@@ -11,7 +11,7 @@ commands:
 executors:
   clojure:
     docker:
-      - image: clojure:openjdk-8-tools-deps-1.9.0.977-alpine
+      - image: clojure:openjdk-8-tools-deps-1.9.0.397-alpine
     environment:
       JAVA_OPTS: "-Xms512m -Xmx3200m"
 
