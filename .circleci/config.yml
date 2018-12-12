@@ -34,7 +34,6 @@ jobs:
     executor: clojure
     steps:
       - prepare
-      - run: mkdir target
       - run: clojure -A:test
       - store_test_results:
           path: target
@@ -51,13 +50,16 @@ jobs:
           paths:
             - target/garamond.jar
             - target/pom.xml
+      - store_artifacts:
+          path: target
   deploy:
     executor: clojure
     steps:
       - prepare
       - attach_workspace:
           at: target
-      - run: echo ./etc/deployment/deploy.sh ocp-se-qa $(echo ${CIRCLE_PROJECT_REPONAME}-${CIRCLE_TAG:-${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}})
+      - run: cp target/pom.xml .
+      - run: echo clojure -A:deploy
 
 workflows:
   version: 2
