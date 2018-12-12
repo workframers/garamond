@@ -27,5 +27,3 @@
                :deploy   {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
                           :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy"
                                        "target/garamond.jar"]}}}
-
-

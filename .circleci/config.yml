@@ -67,6 +67,8 @@ workflows:
   test:
     jobs:
       - dependencies
+          filters:
+            branches: { only: /.*/ }
       - test:
           requires:
             - dependencies
@@ -79,9 +81,15 @@ workflows:
       - test:
           requires:
             - dependencies
+          filters:
+            tags: { only: /^v.*/ }
       - build:
           requires:
             - test
+          filters:
+            tags: { only: /^v.*/ }
       - deploy:
           requires:
             - build
+          filters:
+            tags: { only: /^v.*/ }
