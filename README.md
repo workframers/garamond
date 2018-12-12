@@ -1,5 +1,7 @@
 # garamond
 
+[![Clojars Project](https://img.shields.io/clojars/v/com.workframe/garamond.svg)](https://clojars.org/com.workframe/garamond)
+
 A utility to generate and update version numbers and artifact IDs, intended
 to be used for assistance in publishing tools.deps-based libraries as jar
 files to Maven-based repositories.
@@ -20,7 +22,7 @@ To use garamond, install it as an alias in your deps.edn:
 
   :garamond
   {:main-opts ["-m" "garamond.main"]
-   :extra-deps {com.workframe/garamond {:mvn/version "0.1.0"}}}
+   :extra-deps {com.workframe/garamond {:mvn/version "0.3.0"}}}
 
  ...}
 ```

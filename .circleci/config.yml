@@ -6,7 +6,7 @@ commands:
       - checkout
       - run: git fetch --tags
       - restore_cache:
-          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}-2
+          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}-5
 
 executors:
   clojure:
@@ -20,16 +20,15 @@ jobs:
     executor: clojure
     steps:
       - prepare
-      - run:
-          clojure -A:garamond -Spath
-          clojure -A:test -Spath
-          clojure -A:jar -Spath
+      # download and cache dependencies
+      - run: clojure -A:garamond -Spath
+      - run: clojure -A:test -Spath
+      - run: clojure -A:jar -Spath
       - save_cache:
-          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}-2
+          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}-5
           paths:
             - ~/.m2
             - ~/.gitlibs
-            - ~/.clojure
             - .cpcache
   test:
     executor: clojure
@@ -42,7 +41,6 @@ jobs:
     executor: clojure
     steps:
       - prepare
-      - run: git fetch --tags
       - run: clojure -A:garamond -a garamond -g com.workframe --pom
       - run: cp pom.xml target
       - run: clojure -A:jar
@@ -59,8 +57,9 @@ jobs:
       - prepare
       - attach_workspace:
           at: target
+      # copy saved pom.xml, deps-deploy needs it at the project root to work correctly
       - run: cp target/pom.xml .
-      - run: echo clojure -A:deploy
+      - run: clojure -A:deploy
 
 workflows:
   version: 2
