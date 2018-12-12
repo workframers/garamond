@@ -6,7 +6,7 @@ commands:
       - checkout
       - run: git fetch --tags
       - restore_cache:
-          key: workframe-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
+          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
 
 executors:
   clojure:
