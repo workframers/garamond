@@ -47,8 +47,8 @@ jobs:
       - persist_to_workspace:
           root: target
           paths:
-            - target/garamond.jar
-            - target/pom.xml
+            - garamond.jar
+            - pom.xml
       - store_artifacts:
           path: target
   deploy:
