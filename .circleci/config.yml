@@ -6,7 +6,7 @@ commands:
       - checkout
       - run: git fetch --tags
       - restore_cache:
-          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
+          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}-2
 
 executors:
   clojure:
@@ -25,10 +25,11 @@ jobs:
           clojure -A:test -Spath
           clojure -A:jar -Spath
       - save_cache:
-          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
+          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}-2
           paths:
             - ~/.m2
             - ~/.gitlibs
+            - ~/.clojure
             - .cpcache
   test:
     executor: clojure
