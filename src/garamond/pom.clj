@@ -18,8 +18,6 @@
   (let [mods (makecp/combine-deps-files {:config-files ["deps.edn"]})]
     (tool-deps-pom/sync-pom mods (jio/file "."))))
 
-;; This block of code stolen wholesale from clojure.tools.deps.alpha.gen.pom, copyright (c) Rich Hickey
-
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
 
 (defn simple-tag [node new-val]
