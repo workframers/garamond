@@ -1,5 +1,5 @@
 # garamond changelog
 
-## v0.1.0, 2018-12-10
+## v0.3.0, 2018-12-12
 
 Initial release

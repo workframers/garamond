@@ -1,12 +1,12 @@
 # garamond
 
 [![Clojars Project](https://img.shields.io/clojars/v/com.workframe/garamond.svg)](https://clojars.org/com.workframe/garamond)
+[![CircleCI](https://circleci.com/gh/workframers/garamond.svg?style=svg)](https://circleci.com/gh/workframers/garamond)
 
-A utility to generate and update version numbers and artifact IDs, intended
-to be used for assistance in publishing tools.deps-based libraries as jar
-files to Maven-based repositories.
+garamond is a clojure utility for maintaining git tag versions and for
+modifying pom.xml files.
 
-The library is meant to be run from a tools.deps alias. It has two main uses:
+garamond is meant to be run from a tools.deps alias. It has two main uses:
 
 1. Maintaining a version number for a library based on git tags
 2. Postprocessing the tools.deps `clojure -Spom` output to update it
@@ -31,7 +31,15 @@ Now you can run it from the command-line via:
 
 `clojure -A:garamond`
 
-TBD: initialize tags in repo, explain it's all based on git tags
+Note that garamond works on git tags; before you run it you should ensure
+you have at least one "annotated" git tag in your repo. You can create one
+via `git tag --annotate -m "First version tag" v0.1.0`.
+
+garamond follows the common github convention of using tag names
+prepended by `v` as in `v1.2.3`. You can use the `--prefix` flag to
+modify the tags it produces. When reading tags to determine the current
+version, garamond relies on `git describe` and ignores everything before
+the first number.
 
 #### leiningen
 
@@ -91,13 +99,10 @@ See https://github.com/workframers/garamond for more information.
 * `clojure -A:garamond --pom`: Run `clojure -Spom` and modify the generated pom file
   to reflect the current version number along with the group-id and artifact-id given.
 * `clojure -A:garamond patch --tag --pom`: Increment the patch level of the
-  version tag,
+  version tag, generate a new pom.xml with the new version, and create a git tag
+  based on that commit.
 
 ## Versioning rules
-
-Note that garamond follows common github convention by using tag names
-prepended by `v` as in `v1.2.3`. You can use the `--prefix` flag to
-modify the tags it produces.
 
 garabond uses [`zafarkhaja/jsemver`](https://github.com/zafarkhaja/jsemver)
 under the hood to handle manipulating version numbers, and its public
@@ -134,13 +139,28 @@ not: `v3.1.2` becomes `v4.0.0` and `v5.0.0-rc.3` becomes `v5.0.0`.
 This does the same thing as `major-release`, but affects the minor version:
 `v2.3.7` becomes `v2.4.0` and `v5.6.0-rc.0` becomes `v5.6.0`.
 
+## Deploying tools.deps library jars to clojars
+
+It is possible to deploy jars to clojars using a combination of garamond
+to manage versions and update the pom file, Juxt's `pack` project to
+package the jar, and [deps-deploy](https://github.com/slipset/deps-deploy)
+to handle actually pushing the jar to clojars. garamond itself is deployed
+this way; see its
+[`.circleci/config.yml`](https://github.com/workframers/garamond/blob/8ac5566ee5495173141ebb6438593c8aba2f7def/.circleci/config.yml#L40-L62)
+and [`deps.edn`](https://github.com/workframers/garamond/blob/8ac5566ee5495173141ebb6438593c8aba2f7def/deps.edn#L22-L29)
+files for details.
+
+Note that garamond is still missing the facility to add an `<scm>` tag
+to pom.xml files, which is useful to provide proper links from both clojars
+and cljdoc.org to the project's home page; this will be coming soon.
+
 ## Background and rationale
 
 The basic goal of this project is to automate all the pre-`pack/pack.alpha`
 stuff in [this article about deploying library jars with
 deps](https://juxt.pro/blog/posts/pack-maven.html), and to make it possible
 to do so without needing to check in partly machine-generated artifacts
-into the codebase itself.
+(eg, `pom.xml`) into the git repository itself.
 
 Secondarily it aims to serve as an analogue to
 [lein-v](https://github.com/roomkey/lein-v) in the tools.deps universe.
@@ -160,6 +180,7 @@ _Foucault's Pendulum_, and has nothing to do with the typeface of the same name.
 
 - Generate `<scm>` tag, per [this](https://juxt.pro/blog/posts/pack-maven.html#_generate_a_pom_xml).
   Needs lots of argument values, maybe we need a `.garamond.edn` config file?
+- Properly handle cases where there are no tags in the repo
 - Support tag signing
 - Autodeploy garamond to clojars when new tags appear on master
 - Maybe? support generated version.edn / version.clj file as lein-v
