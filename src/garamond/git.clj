@@ -19,14 +19,19 @@
     (log/errorf "stderr: %s" (string/trim err)))
   (u/exit exit))
 
-(defn run-git-command [cmd-line options]
-  (let [full-cmd (into [(:git cf-config)] cmd-line)
-        _        (log/trace (string/join " " full-cmd))
-        result   (apply shell/sh full-cmd)]
-    (when-not (zero? (:exit result))
-      (handle-error full-cmd result))
-    (when-not (-> result :out string/blank?)
-      (log/debugf "Output of '%s': %s" (string/join " " full-cmd) (-> result :out string/trim)))))
+(defn run-git-command
+  ([cmd-line]
+   (run-git-command cmd-line nil))
+  ([cmd-line options]
+   (let [full-cmd (into [(:git cf-config)] cmd-line)
+         _        (log/trace (string/join " " full-cmd))
+         result   (apply shell/sh full-cmd)
+         stdout   (some-> result :out string/trim-newline)]
+     (when-not (zero? (:exit result))
+       (handle-error full-cmd result))
+     (when-not (string/blank? stdout)
+       (log/debugf "Output of '%s': %s" (string/join " " full-cmd) stdout))
+     stdout)))
 
 (defn current-status []
   (let [status  (cuddlefish/status cf-config)
@@ -40,6 +45,12 @@
     message
     (format "Automatically-generated tag from garamond%s"
             (if incr-type (str " " (name incr-type)) ""))))
+
+(defn current-sha []
+  (run-git-command ["log" "-1" "--format=%H"]))
+
+(defn remote-url []
+  (run-git-command ["remote" "get-url" "origin"]))
 
 (defn tag!
   "Create a new git tag based on the passed-in version. Abort (throw an exception)"

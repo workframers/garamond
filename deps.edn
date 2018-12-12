@@ -12,7 +12,10 @@
                org.clojure/data.xml              {:mvn/version "0.2.0-alpha6"}
                org.clojure/data.zip              {:mvn/version "0.1.2"}}
 
- :aliases     {:garamond {:main-opts ["-m" "garamond.main" "--artifact-id" "garamond" "--group-id" "com.workframe"]}
+ :aliases     {:garamond {:main-opts ["-m" "garamond.main"
+                                      "--artifact-id" "garamond"
+                                      "--group-id" "com.workframe"
+                                      "--scm-url" "https://github.com/workframers/garamond"]}
 
                :test     {:extra-paths ["test"]
                           :extra-deps  {lambdaisland/kaocha           {:mvn/version "0.0-266"}

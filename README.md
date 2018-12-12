@@ -21,7 +21,7 @@ To use garamond, install it as an alias in your deps.edn:
 
   :garamond
   {:main-opts ["-m" "garamond.main"]
-   :extra-deps {com.workframe/garamond {:mvn/version "0.3.0"}}}
+   :extra-deps {com.workframe/garamond {:mvn/version "0.4.0"}}}
 
  ...}
 ```
@@ -73,7 +73,8 @@ Options:
   -m, --message MESSAGE          Commit message for git tag
   -g, --group-id GROUP-ID        Update the pom.xml file with this <groupId> value
   -a, --artifact-id ARTIFACT-ID  Update the pom.xml file with this <artifactId> value
-      --force-version VERSION    Use this value for the pom.xml <version> tag
+  -u, --scm-url URL              Update the pom.xml's <scm> tag with this <url> value
+      --force-version VERSION    Use this version number instead of relying on git describe
 
 With no increment type, garamond will print the current version number and exit.
 
@@ -119,7 +120,7 @@ the jsemver defaults, centered around "release candidate" versions:
 Create a "release candidate". If the current version does not have an
 `-rc.x` suffix, bump the major version and add a new `-rc.0` suffix.
 If it already has a suffix, increment the rc number. So `v1.2.3` would
-become `2.0.0-rc.0`, and `3.0.0-rc.2` would become `3.0.0-rc.3`.
+become `v2.0.0-rc.0`, and `v3.0.0-rc.2` would become `v3.0.0-rc.3`.
 
 #### `clojure -A:garamond increment minor-rc`
 
@@ -138,6 +139,36 @@ not: `v3.1.2` becomes `v4.0.0` and `v5.0.0-rc.3` becomes `v5.0.0`.
 This does the same thing as `major-release`, but affects the minor version:
 `v2.3.7` becomes `v2.4.0` and `v5.6.0-rc.0` becomes `v5.6.0`.
 
+## pom.xml modification
+
+Running `clojure -A:garamond --pom` will invoke tools.deps to generate a
+pom.xml file, as in `clojure -Spom`. It will then post-process the generated
+file to make some modifications:
+
+- The `<groupId>` and `<artifactId>` tags are updated with values from
+  command-line arguments
+- The `<version>` tag is modified with the current version. If you asked
+  garamond to increment the version, the new version will be used; if you
+  manually specified a version on the command line via `--force-version v2.3.4`,
+  that value will be used.
+- An `<scm>` tag will be created, if it doesn't exist; if it does exist
+  its values will be updated.
+
+The `<scm>` tag is created largely so clojars and cljdoc can link back to
+your project's home page
+([see here](https://cljdoc.org/d/org.clojars.elarouss/cljdoc/0.1.0/doc/faq#how-do-i-set-scm-info-for-my-project)).
+garamond uses the current git SHA as the `<tag>` value and the value of
+`git remote show origin` as the `<connection>`. You need to specify the
+`<url>` tag on the command-line as `--scm-url`.
+
+Like `clojure -Spom`, garamond will leave the bits of your pom.xml which
+it isn't modifying alone.
+
+_Note_: garamond currently generates pom.xml files using only the project-level
+`deps.edn` file. It should probably also include the system-level one, eg
+`/usr/local/lib/clojure/dep.edn` or what have you. This is planned as a
+future enhancement.
+
 ## Deploying tools.deps library jars to clojars
 
 It is possible to deploy jars to clojars using a combination of garamond
@@ -148,10 +179,6 @@ this way; see its
 [`.circleci/config.yml`](https://github.com/workframers/garamond/blob/8ac5566ee5495173141ebb6438593c8aba2f7def/.circleci/config.yml#L40-L62)
 and [`deps.edn`](https://github.com/workframers/garamond/blob/8ac5566ee5495173141ebb6438593c8aba2f7def/deps.edn#L22-L29)
 files for details.
-
-Note that garamond is still missing the facility to add an `<scm>` tag
-to pom.xml files, which is useful to provide proper links from both clojars
-and cljdoc.org to the project's home page; this will be coming soon.
 
 ## Background and rationale
 
@@ -177,9 +204,8 @@ _Foucault's Pendulum_, and has nothing to do with the typeface of the same name.
 
 ## TODO
 
-- Generate `<scm>` tag, per [this](https://juxt.pro/blog/posts/pack-maven.html#_generate_a_pom_xml).
-  Needs lots of argument values, maybe we need a `.garamond.edn` config file?
+- Load in system `deps.edn` when generating pom.xml
 - Properly handle cases where there are no tags in the repo
 - Support tag signing
-- Autodeploy garamond to clojars when new tags appear on master
+- Tests for the pom generation stuff
 - Maybe? support generated version.edn / version.clj file as lein-v

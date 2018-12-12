@@ -17,7 +17,8 @@
    ["-m" "--message MESSAGE" "Commit message for git tag"]
    ["-g" "--group-id GROUP-ID" "Update the pom.xml file with this <groupId> value"]
    ["-a" "--artifact-id ARTIFACT-ID" "Update the pom.xml file with this <artifactId> value"]
-   [nil "--force-version VERSION" "Use this value for the pom.xml <version> tag"]])
+   ["-u" "--scm-url URL" "Update the pom.xml's <scm> tag with this <url> value"]
+   [nil "--force-version VERSION" "Use this version number instead of relying on git describe"]])
 
 (defn usage [options-summary]
   (->> ["garamond is a utility for printing and incrementing versions based on git tags,"
