@@ -25,7 +25,7 @@ jobs:
           clojure -A:test -Spath
           clojure -A:jar -Spath
       - save_cache:
-          key: workframe-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
+          key: com.workframe.{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
           paths:
             - ~/.m2
             - ~/.gitlibs
@@ -61,20 +61,18 @@ jobs:
 
 workflows:
   version: 2
-  feature-branch:
+  test:
     jobs:
-      - dependencies:
-          filters:
-            branches: { ignore: master }
+      - dependencies
       - test:
           requires:
             - dependencies
-  build-and-deploy:
+  deploy:
     jobs:
       - dependencies:
           filters:
             tags: { only: /^v.*/ }
-            branches: { only: master }
+            branches: { ignore: /*.*/ }
       - test:
           requires:
             - dependencies
