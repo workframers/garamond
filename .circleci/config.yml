@@ -1,0 +1,86 @@
+version: 2.1
+
+commands:
+  prepare:
+    steps:
+      - checkout
+      - run: git fetch --tags
+      - restore_cache:
+          key: workframe-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
+
+executors:
+  clojure:
+    docker:
+      - image: clojure:openjdk-8-tools-deps-1.9.0.977-alpine
+    environment:
+      JAVA_OPTS: "-Xms512m -Xmx3200m"
+
+jobs:
+  dependencies:
+    executor: clojure
+    steps:
+      - prepare
+      - run:
+          clojure -A:garamond -Spath
+          clojure -A:test -Spath
+          clojure -A:jar -Spath
+      - save_cache:
+          key: workframe-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "deps.edn" }}
+          paths:
+            - ~/.m2
+            - ~/.gitlibs
+            - .cpcache
+  test:
+    executor: clojure
+    steps:
+      - prepare
+      - run: mkdir target
+      - run: clojure -A:test
+      - store_test_results:
+          path: target
+  build:
+    executor: clojure
+    steps:
+      - prepare
+      - run: git fetch --tags
+      - run: clojure -A:garamond -a garamond -g com.workframe --pom
+      - run: cp pom.xml target
+      - run: clojure -A:jar
+      - persist_to_workspace:
+          root: target
+          paths:
+            - target/garamond.jar
+            - target/pom.xml
+  deploy:
+    executor: clojure
+    steps:
+      - prepare
+      - attach_workspace:
+          at: target
+      - run: echo ./etc/deployment/deploy.sh ocp-se-qa $(echo ${CIRCLE_PROJECT_REPONAME}-${CIRCLE_TAG:-${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}})
+
+workflows:
+  version: 2
+  feature-branch:
+    jobs:
+      - dependencies:
+          filters:
+            branches: { ignore: master }
+      - test:
+          requires:
+            - dependencies
+  build-and-deploy:
+    jobs:
+      - dependencies:
+          filters:
+            tags: { only: /^v.*/ }
+            branches: { only: master }
+      - test:
+          requires:
+            - dependencies
+      - build:
+          requires:
+            - test
+      - deploy:
+          requires:
+            - build
