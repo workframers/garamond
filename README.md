@@ -156,7 +156,7 @@ file to make some modifications:
 
 The `<scm>` tag is created largely so clojars and cljdoc can link back to
 your project's home page
-([see here](https://cljdoc.org/d/org.clojars.elarouss/cljdoc/0.1.0/doc/faq#how-do-i-set-scm-info-for-my-project)).
+([see here](https://github.com/cljdoc/cljdoc/blob/master/doc/userguide/faq.md#how-do-i-set-scm-info-for-my-project)).
 garamond uses the current git SHA as the `<tag>` value and the value of
 `git remote show origin` as the `<connection>`. You need to specify the
 `<url>` tag on the command-line as `--scm-url`.
