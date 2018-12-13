@@ -107,7 +107,8 @@
 
       (when-not (or (:pom opts) (:tag opts))
         (if incr?
-          (print-version opts status)
+          (log/infof "%s increment of %s -> %s. Run with --tag to tag this commit as %s."
+                     (name incr-type) (:current status) new-str new-str)
           (print-version opts status))))
 
     (catch Exception e
