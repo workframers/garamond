@@ -199,8 +199,9 @@ do some similar stuff in a leiningen context.
 
 ### About the name
 
-Garamond is the name of a publishing company in Umberto Eco's 1988 novel
-_Foucault's Pendulum_, and has nothing to do with the typeface of the same name.
+Garamond is the name of [a publishing company](https://wanderinglibrarian.wordpress.com/2009/05/06/publisher-schemes-foucault%E2%80%99s-pendulum%E2%80%A6-the-continued-wanderings/)
+in Umberto Eco's 1988 novel _Foucault's Pendulum_, and is only tangentially
+related the typeface of the same name.
 
 ## TODO
 
