@@ -1,11 +1,10 @@
 (ns garamond.pom
   (:require [taoensso.timbre :as log]
             [clojure.tools.deps.alpha.gen.pom :as tda-pom]
-            [clojure.tools.deps.alpha.reader :as tda-reader]
+            [clojure.tools.deps.alpha :as tda]
             [clojure.java.io :as jio]
             [clojure.data.xml :as xml]
             [clojure.data.zip.xml :as zxml]
-            [clojure.tools.deps.alpha.script.make-classpath :as makecp]
             [clojure.zip :as zip]
             [garamond.git :as git]
             [clojure.string :as string]))
@@ -16,7 +15,7 @@
   running `clojure -Spom`."
   []
   ;; TODO: should probably include the system pom here, see tda-reader/clojure-env
-  (let [deps (tda-reader/slurp-deps (jio/file "deps.edn"))]
+  (let [deps (tda/slurp-deps (jio/file "deps.edn"))]
     (tda-pom/sync-pom deps (jio/file "."))))
 
 (xml/alias-uri 'pom "http://maven.apache.org/POM/4.0.0")
